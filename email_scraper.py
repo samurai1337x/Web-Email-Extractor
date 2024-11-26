@@ -41,6 +41,7 @@ def email_scraper():
                 print(f"[!] Error fetching {url}: {e}")
                 continue
 
+            # Extract emails with improved filtering
             new_emails = set(
                 re.findall(
                     r"[a-zA-Z0-9.\-+_]+@[a-zA-Z0-9.\-+_]+\.[a-zA-Z]+",
@@ -48,7 +49,12 @@ def email_scraper():
                     re.I,
                 )
             )
-            emails.update(new_emails)
+            for email in new_emails:
+                # Exclude common image formats and invalid email patterns
+                if not email.lower().endswith(
+                    (".png", ".jpg", ".jpeg", ".gif", ".webp")
+                ):
+                    emails.add(email)
 
             soup = BeautifulSoup(response.text, features="lxml")
             for anchor in soup.find_all("a", href=True):
@@ -67,7 +73,7 @@ def email_scraper():
     if emails:
         output_file = "scraped_emails.txt"
         with open(output_file, "w") as f:
-            for email in emails:
+            for email in sorted(emails):
                 f.write(email + "\n")
         print(f"[+] Emails successfully scraped. Results saved in '{output_file}'.")
     else:
